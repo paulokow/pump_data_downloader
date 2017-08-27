@@ -98,7 +98,7 @@ class LatestActivity (object):
     
     def run(self):
         self.init()
-        if (self.checkIfRun() or True):
+        if (self.checkIfRun()):
             read_minimed_next24.downloadPumpSession(self.historyDownload)
 
 if __name__ == '__main__':
