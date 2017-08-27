@@ -2,6 +2,7 @@
 
 import read_minimed_next24
 import datetime
+import time
 from pump_history_parser import NGPHistoryEvent
 from pump_history_parser import BloodGlucoseReadingEvent
 
@@ -45,7 +46,7 @@ class LatestActivity (object):
     def historyDownload(self, mt):
         enddate=datetime.now().replace(tzinfo=None)
         startdate=self.get_max_bg_record().replace(tzinfo=None)
-        print "Download from {0} to {1}".format(startdate, enddate)
+        print "Download from {0} to {1}".format(startdate.isoformat(), enddate.isoformat())
 
         
         print "Getting history info"
@@ -60,10 +61,11 @@ class LatestActivity (object):
         events = mt.processPumpHistory(history_pages)
         print "# All events:"
         for ev in events:
-            if isinstance(ev, BloodGlucoseReadingEvent) and ev.timestamp.replace(tzinfo=None) > startdate:
+            #print ev.timestamp, datetime.utcfromtimestamp(time.mktime(ev.timestamp.timetuple()))
+            if isinstance(ev, BloodGlucoseReadingEvent) and datetime.utcfromtimestamp(time.mktime(ev.timestamp.timetuple())) > startdate:
                 print "Writing: ", ev
                 to_write = {
-                    "timestamp": ev.timestamp,
+                    "timestamp": ev.timestamp.replace(tzinfo=None),
                     "hour": ev.timestamp.hour,
                     "value": ev.bgValue,
                     "real": True,
@@ -96,7 +98,7 @@ class LatestActivity (object):
     
     def run(self):
         self.init()
-        if (self.checkIfRun()):
+        if (self.checkIfRun() or True):
             read_minimed_next24.downloadPumpSession(self.historyDownload)
 
 if __name__ == '__main__':
