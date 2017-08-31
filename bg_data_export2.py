@@ -45,7 +45,7 @@ class LatestActivity (object):
 
     def historyDownload(self, mt):
         enddate=datetime.now().replace(tzinfo=None)
-        startdate=self.get_max_bg_record().replace(tzinfo=None)
+        startdate=self.get_max_bg_record().replace(tzinfo=None) + timedelta(0,1)
         print "Download from {0} to {1}".format(startdate.isoformat(), enddate.isoformat())
 
         
@@ -59,18 +59,22 @@ class LatestActivity (object):
         history_pages = mt.getPumpHistory(historyInfo.historySize, startdate, enddate)
     
         events = mt.processPumpHistory(history_pages)
+	
         print "# All events:"
         for ev in events:
             #print ev.timestamp, datetime.utcfromtimestamp(time.mktime(ev.timestamp.timetuple()))
-            if isinstance(ev, BloodGlucoseReadingEvent) and datetime.utcfromtimestamp(time.mktime(ev.timestamp.timetuple())) > startdate:
-                print "Writing: ", ev
-                to_write = {
-                    "timestamp": ev.timestamp.replace(tzinfo=None),
-                    "hour": ev.timestamp.hour,
-                    "value": ev.bgValue,
-                    "real": True,
-                    }
-                self.db.bg_valueses.insert_one(to_write)
+            if isinstance(ev, BloodGlucoseReadingEvent):
+		if  ev.timestamp.replace(tzinfo=None) > startdate:
+	                print "Writing: ", ev
+	                to_write = {
+	                    "timestamp": ev.timestamp.replace(tzinfo=None),
+	                    "hour": ev.timestamp.hour,
+	                    "value": ev.bgValue,
+	                    "real": True,
+	                    }
+	                self.db.bg_valueses.insert_one(to_write)
+#	        else:
+#	            print "Skipping: ", ev.timestamp, ev.timestamp.replace(tzinfo=None), " <= ", startdate
 
         #print json.dumps(record, indent=2)
         print "# End events"
@@ -89,6 +93,7 @@ class LatestActivity (object):
         print "Config: ", self.config
         
     def checkIfRun(self):
+        return True
         dl = datetime.utcnow() - self.config['lastPumpRead']
         if dl.days == 0 and dl.seconds < (60 * 60):
             print 'Short time since last run:', dl
