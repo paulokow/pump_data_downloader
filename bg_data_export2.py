@@ -3,8 +3,7 @@
 import read_minimed_next24
 import datetime
 import time
-from pump_history_parser import NGPHistoryEvent
-from pump_history_parser import BloodGlucoseReadingEvent
+from pump_history_parser import NGPHistoryEvent,BloodGlucoseReadingEvent,NormalBolusDeliveredEvent
 
 from datetime import datetime, timedelta
 from pymongo import MongoClient
@@ -15,7 +14,7 @@ import json
 class LatestActivity (object):
 
     def __init__(self):
-        self.db=MongoClient().bg_db
+        self.db=MongoClient().bg_db_test
     
     def get_max_bg_record(self):
         pipeline = [
@@ -26,14 +25,22 @@ class LatestActivity (object):
               }
             }
           ]
+	ret = datetime(2010,1,1)
         max_list=list(self.db.bg_valueses.aggregate(pipeline))
         if len(max_list) > 0:
             rec = max_list[0]
-            print rec
-            return rec["date"]
+            ret = rec["date"]
         else:
-            print "Nothing find in DB"
-            return datetime.min
+            print "Nothing find in BG DB"
+
+        max_list=list(self.db.bolus_values.aggregate(pipeline))
+        if len(max_list) > 0:
+            rec = max_list[0]
+            if rec["date"] > ret:
+                ret = rec["date"]
+        else:
+            print "Nothing find in Bolus DB"
+       	return ret
 
     def getConfig(self):
         self.config = self.db.bg_config2.find_one();
@@ -63,16 +70,26 @@ class LatestActivity (object):
         print "# All events:"
         for ev in events:
             #print ev.timestamp, datetime.utcfromtimestamp(time.mktime(ev.timestamp.timetuple()))
-            if isinstance(ev, BloodGlucoseReadingEvent):
-		if  ev.timestamp.replace(tzinfo=None) > startdate:
-	                print "Writing: ", ev
-	                to_write = {
-	                    "timestamp": ev.timestamp.replace(tzinfo=None),
-	                    "hour": ev.timestamp.hour,
-	                    "value": ev.bgValue,
-	                    "real": True,
-	                    }
-	                self.db.bg_valueses.insert_one(to_write)
+	    if  ev.timestamp.replace(tzinfo=None) > startdate:
+            	if isinstance(ev, BloodGlucoseReadingEvent):
+	            print "Writing: ", ev
+	            to_write = {
+	                "timestamp": ev.timestamp.replace(tzinfo=None),
+	                "hour": ev.timestamp.hour,
+	                "value": ev.bgValue,
+	                "real": True,
+	                }
+	            self.db.bg_valueses.insert_one(to_write)
+	        elif isinstance(ev, NormalBolusDeliveredEvent):
+	            print "Writing: ", ev
+	            to_write = {
+	                "timestamp": ev.timestamp.replace(tzinfo=None),
+	                "hour": ev.timestamp.hour,
+	                "delivered": ev.deliveredAmount,
+	                "programmed": ev.programmedAmount,
+	                }
+	            self.db.bolus_values.insert_one(to_write)
+	        	 
 #	        else:
 #	            print "Skipping: ", ev.timestamp, ev.timestamp.replace(tzinfo=None), " <= ", startdate
 
