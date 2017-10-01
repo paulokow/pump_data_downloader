@@ -118,6 +118,7 @@ class LatestActivity (object):
                         "timestamp": ev.timestamp.replace(tzinfo=None),
                         "hour": ev.timestamp.hour,
                         "bgInput": ev.bgInput,
+                        "carbInput": ev.carbInput,
                         "carbRatio": ev.carbRatio,
                         "correctionEstimate": ev.correctionEstimate,
                         "bolusWizardEstimate": ev.bolusWizardEstimate,
