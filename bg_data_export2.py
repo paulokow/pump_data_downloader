@@ -34,6 +34,14 @@ class LatestActivity (object):
         else:
             print "Nothing found in BG DB"
 
+        max_list=list(self.db.bolus_values.aggregate(pipeline))
+        if len(max_list) > 0:
+            rec = max_list[0]
+            if rec["date"] > ret:
+                ret = rec["date"]
+        else:
+            print "Nothing found in bolus_values DB"
+
         max_list=list(self.db.wizard_values.aggregate(pipeline))
         if len(max_list) > 0:
             rec = max_list[0]
