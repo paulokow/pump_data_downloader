@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from pymongo import MongoClient
 
 import json
+from read_minimed_next24 import HISTORY_DATA_TYPE
 
 
 class LatestActivity (object):
@@ -63,9 +64,9 @@ class LatestActivity (object):
         print "Hisotry size {0}".format(historyInfo.historySize)
         
         print "Getting history"
-        history_pages = mt.getPumpHistory(historyInfo.historySize, startdate, enddate)
+        history_pages = mt.getPumpHistory(historyInfo.historySize, startdate, enddate, HISTORY_DATA_TYPE.PUMP_DATA)
     
-        events = mt.processPumpHistory(history_pages, )
+        events = mt.processPumpHistory(history_pages, HISTORY_DATA_TYPE.PUMP_DATA)
 
         print "# All events:"
         for ev in events:
@@ -73,52 +74,52 @@ class LatestActivity (object):
             if  ev.timestamp.replace(tzinfo=None) > startdate:
                 if isinstance(ev, BloodGlucoseReadingEvent):
                     print "Writing: ", ev
-                to_write = {
-	                "type": "BloodGlucoseReadingEvent",
-	                "timestamp": ev.timestamp.replace(tzinfo=None),
-	                "hour": ev.timestamp.hour,
-	                "value": ev.bgValue,
-	                "real": True,
-	                }
-                self.db.bg_valueses.insert_one(to_write)
-                self.db.all_events.insert_one(to_write)
-            elif isinstance(ev, NormalBolusDeliveredEvent):
-                print "Writing: ", ev
-                to_write = {
-	                "type": "NormalBolusDeliveredEvent",
-	                "timestamp": ev.timestamp.replace(tzinfo=None),
-	                "hour": ev.timestamp.hour,
-	                "delivered": ev.deliveredAmount,
-	                "programmed": ev.programmedAmount,
-	                }
-                self.db.bolus_values.insert_one(to_write)
-                self.db.all_events.insert_one(to_write)
-            elif isinstance(ev, BolusWizardEstimateEvent):
-                print "Writing: ", ev
-                to_write = {
-                    "type": "BolusWizardEstimateEvent",
-                    "timestamp": ev.timestamp.replace(tzinfo=None),
-                    "hour": ev.timestamp.hour,
-                    "bgInput": ev.bgInput,
-                    "carbRatio": ev.carbRatio,
-                    "correctionEstimate": ev.correctionEstimate,
-                    "bolusWizardEstimate": ev.bolusWizardEstimate,
-                    "estimateModifiedByUser": ev.estimateModifiedByUser,
-                    "finalEstimate": ev.finalEstimate
-                    }
-                self.db.wizard_values.insert_one(to_write)
-                self.db.all_events.insert_one(to_write)
-            elif isinstance(ev, BasalSegmentStartEvent):
-                print "Writing: ", ev
-                to_write = {
-                    "type": "BasalSegmentStartEvent",
-                    "timestamp": ev.timestamp.replace(tzinfo=None),
-                    "hour": ev.timestamp.hour,
-                    "rate": ev.rate,
-                    "patternName": ev.patternName,
-                    }
-                self.db.basal_values.insert_one(to_write)
-                self.db.all_events.insert_one(to_write)
+                    to_write = {
+    	                "type": "BloodGlucoseReadingEvent",
+    	                "timestamp": ev.timestamp.replace(tzinfo=None),
+    	                "hour": ev.timestamp.hour,
+    	                "value": ev.bgValue,
+    	                "real": True,
+    	                }
+                    self.db.bg_valueses.insert_one(to_write)
+                    self.db.all_events.insert_one(to_write)
+                elif isinstance(ev, NormalBolusDeliveredEvent):
+                    print "Writing: ", ev
+                    to_write = {
+    	                "type": "NormalBolusDeliveredEvent",
+    	                "timestamp": ev.timestamp.replace(tzinfo=None),
+    	                "hour": ev.timestamp.hour,
+    	                "delivered": ev.deliveredAmount,
+    	                "programmed": ev.programmedAmount,
+    	                }
+                    self.db.bolus_values.insert_one(to_write)
+                    self.db.all_events.insert_one(to_write)
+                elif isinstance(ev, BolusWizardEstimateEvent):
+                    print "Writing: ", ev
+                    to_write = {
+                        "type": "BolusWizardEstimateEvent",
+                        "timestamp": ev.timestamp.replace(tzinfo=None),
+                        "hour": ev.timestamp.hour,
+                        "bgInput": ev.bgInput,
+                        "carbRatio": ev.carbRatio,
+                        "correctionEstimate": ev.correctionEstimate,
+                        "bolusWizardEstimate": ev.bolusWizardEstimate,
+                        "estimateModifiedByUser": ev.estimateModifiedByUser,
+                        "finalEstimate": ev.finalEstimate
+                        }
+                    self.db.wizard_values.insert_one(to_write)
+                    self.db.all_events.insert_one(to_write)
+                elif isinstance(ev, BasalSegmentStartEvent):
+                    print "Writing: ", ev
+                    to_write = {
+                        "type": "BasalSegmentStartEvent",
+                        "timestamp": ev.timestamp.replace(tzinfo=None),
+                        "hour": ev.timestamp.hour,
+                        "rate": ev.rate,
+                        "patternName": ev.patternName,
+                        }
+                    self.db.basal_values.insert_one(to_write)
+                    self.db.all_events.insert_one(to_write)
                 
 #	        else:
 #	            print "Skipping: ", ev.timestamp, ev.timestamp.replace(tzinfo=None), " <= ", startdate
