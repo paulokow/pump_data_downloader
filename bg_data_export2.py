@@ -25,7 +25,7 @@ class LatestActivity (object):
               }
             }
           ]
-	ret = datetime(2010,1,1)
+        ret = datetime(2010,1,1)
         max_list=list(self.db.bg_valueses.aggregate(pipeline))
         if len(max_list) > 0:
             rec = max_list[0]
@@ -40,7 +40,7 @@ class LatestActivity (object):
                 ret = rec["date"]
         else:
             print "Nothing find in Bolus DB"
-       	return ret
+        return ret
 
     def getConfig(self):
         self.config = self.db.bg_config2.find_one();
@@ -66,34 +66,60 @@ class LatestActivity (object):
         history_pages = mt.getPumpHistory(historyInfo.historySize, startdate, enddate)
     
         events = mt.processPumpHistory(history_pages, )
-	
+
         print "# All events:"
         for ev in events:
             #print ev.timestamp, datetime.utcfromtimestamp(time.mktime(ev.timestamp.timetuple()))
-	    if  ev.timestamp.replace(tzinfo=None) > startdate:
-            	if isinstance(ev, BloodGlucoseReadingEvent):
-	            print "Writing: ", ev
-	            to_write = {
-	                "type": "BG",
+            if  ev.timestamp.replace(tzinfo=None) > startdate:
+                if isinstance(ev, BloodGlucoseReadingEvent):
+                    print "Writing: ", ev
+                to_write = {
+	                "type": "BloodGlucoseReadingEvent",
 	                "timestamp": ev.timestamp.replace(tzinfo=None),
 	                "hour": ev.timestamp.hour,
 	                "value": ev.bgValue,
 	                "real": True,
 	                }
-	            self.db.bg_valueses.insert_one(to_write)
-	            self.db.all_events.insert_one(to_write)
-	        elif isinstance(ev, NormalBolusDeliveredEvent):
-	            print "Writing: ", ev
-	            to_write = {
-	                "type": "Bolus",
+                self.db.bg_valueses.insert_one(to_write)
+                self.db.all_events.insert_one(to_write)
+            elif isinstance(ev, NormalBolusDeliveredEvent):
+                print "Writing: ", ev
+                to_write = {
+	                "type": "NormalBolusDeliveredEvent",
 	                "timestamp": ev.timestamp.replace(tzinfo=None),
 	                "hour": ev.timestamp.hour,
 	                "delivered": ev.deliveredAmount,
 	                "programmed": ev.programmedAmount,
 	                }
-	            self.db.bolus_values.insert_one(to_write)
-	            self.db.all_events.insert_one(to_write)
-	        	 
+                self.db.bolus_values.insert_one(to_write)
+                self.db.all_events.insert_one(to_write)
+            elif isinstance(ev, BolusWizardEstimateEvent):
+                print "Writing: ", ev
+                to_write = {
+                    "type": "BolusWizardEstimateEvent",
+                    "timestamp": ev.timestamp.replace(tzinfo=None),
+                    "hour": ev.timestamp.hour,
+                    "bgInput": ev.bgInput,
+                    "carbRatio": ev.carbRatio,
+                    "correctionEstimate": ev.correctionEstimate,
+                    "bolusWizardEstimate": ev.bolusWizardEstimate,
+                    "estimateModifiedByUser": ev.estimateModifiedByUser,
+                    "finalEstimate": ev.finalEstimate
+                    }
+                self.db.wizard_values.insert_one(to_write)
+                self.db.all_events.insert_one(to_write)
+            elif isinstance(ev, BasalSegmentStartEvent):
+                print "Writing: ", ev
+                to_write = {
+                    "type": "BasalSegmentStartEvent",
+                    "timestamp": ev.timestamp.replace(tzinfo=None),
+                    "hour": ev.timestamp.hour,
+                    "rate": ev.rate,
+                    "patternName": ev.patternName,
+                    }
+                self.db.basal_values.insert_one(to_write)
+                self.db.all_events.insert_one(to_write)
+                
 #	        else:
 #	            print "Skipping: ", ev.timestamp, ev.timestamp.replace(tzinfo=None), " <= ", startdate
 
