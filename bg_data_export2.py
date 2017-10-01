@@ -65,7 +65,7 @@ class LatestActivity (object):
         print "Getting history"
         history_pages = mt.getPumpHistory(historyInfo.historySize, startdate, enddate)
     
-        events = mt.processPumpHistory(history_pages)
+        events = mt.processPumpHistory(history_pages, )
 	
         print "# All events:"
         for ev in events:
@@ -74,21 +74,25 @@ class LatestActivity (object):
             	if isinstance(ev, BloodGlucoseReadingEvent):
 	            print "Writing: ", ev
 	            to_write = {
+	                "type": "BG",
 	                "timestamp": ev.timestamp.replace(tzinfo=None),
 	                "hour": ev.timestamp.hour,
 	                "value": ev.bgValue,
 	                "real": True,
 	                }
 	            self.db.bg_valueses.insert_one(to_write)
+	            self.db.all_events.insert_one(to_write)
 	        elif isinstance(ev, NormalBolusDeliveredEvent):
 	            print "Writing: ", ev
 	            to_write = {
+	                "type": "Bolus",
 	                "timestamp": ev.timestamp.replace(tzinfo=None),
 	                "hour": ev.timestamp.hour,
 	                "delivered": ev.deliveredAmount,
 	                "programmed": ev.programmedAmount,
 	                }
 	            self.db.bolus_values.insert_one(to_write)
+	            self.db.all_events.insert_one(to_write)
 	        	 
 #	        else:
 #	            print "Skipping: ", ev.timestamp, ev.timestamp.replace(tzinfo=None), " <= ", startdate
