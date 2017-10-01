@@ -3,7 +3,7 @@
 import read_minimed_next24
 import datetime
 import time
-from pump_history_parser import NGPHistoryEvent,BloodGlucoseReadingEvent,NormalBolusDeliveredEvent
+from pump_history_parser import NGPHistoryEvent,BloodGlucoseReadingEvent,NormalBolusDeliveredEvent,BolusWizardEstimateEvent,BasalSegmentStartEvent
 
 from datetime import datetime, timedelta
 from pymongo import MongoClient
