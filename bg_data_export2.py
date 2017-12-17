@@ -27,37 +27,13 @@ class LatestActivity (object):
             }
           ]
         ret = datetime(2010,1,1)
-        max_list=list(self.db.bg_valueses.aggregate(pipeline))
+        max_list=list(self.db.all_events.aggregate(pipeline))
         if len(max_list) > 0:
             rec = max_list[0]
             ret = rec["date"]
         else:
-            print "Nothing found in BG DB"
-
-        max_list=list(self.db.bolus_values.aggregate(pipeline))
-        if len(max_list) > 0:
-            rec = max_list[0]
-            if rec["date"] > ret:
-                ret = rec["date"]
-        else:
-            print "Nothing found in bolus_values DB"
-
-        max_list=list(self.db.wizard_values.aggregate(pipeline))
-        if len(max_list) > 0:
-            rec = max_list[0]
-            if rec["date"] > ret:
-                ret = rec["date"]
-        else:
-            print "Nothing found in wizard_values DB"
-
-        max_list=list(self.db.basal_values.aggregate(pipeline))
-        if len(max_list) > 0:
-            rec = max_list[0]
-            if rec["date"] > ret:
-                ret = rec["date"]
-        else:
-            print "Nothing found in basal_values DB"
-
+            print "Nothing found in All Events DB"
+            
         return ret
 
     def getConfig(self):
@@ -111,7 +87,6 @@ class LatestActivity (object):
     	                "value": ev.bgValue,
     	                "real": True,
     	                }
-                    self.db.bg_valueses.insert_one(to_write)
                     self.db.all_events.insert_one(to_write)
                 if isinstance(ev, SensorGlucoseReading):
                     print "Writing: ", ev
@@ -123,7 +98,6 @@ class LatestActivity (object):
                         "real": True,
                         "sensor": True
                         }
-                    self.db.bg_valueses.insert_one(to_write)
                     self.db.all_events.insert_one(to_write)                                        
                 elif isinstance(ev, NormalBolusDeliveredEvent):
                     print "Writing: ", ev
@@ -134,7 +108,6 @@ class LatestActivity (object):
     	                "delivered": ev.deliveredAmount,
     	                "programmed": ev.programmedAmount,
     	                }
-                    self.db.bolus_values.insert_one(to_write)
                     self.db.all_events.insert_one(to_write)
                 elif isinstance(ev, BolusWizardEstimateEvent):
                     print "Writing: ", ev
@@ -150,7 +123,6 @@ class LatestActivity (object):
                         "estimateModifiedByUser": ev.estimateModifiedByUser,
                         "finalEstimate": ev.finalEstimate
                         }
-                    self.db.wizard_values.insert_one(to_write)
                     self.db.all_events.insert_one(to_write)
                 elif isinstance(ev, BasalSegmentStartEvent):
                     print "Writing: ", ev
@@ -161,7 +133,6 @@ class LatestActivity (object):
                         "rate": ev.rate,
                         "patternName": ev.patternName,
                         }
-                    self.db.basal_values.insert_one(to_write)
                     self.db.all_events.insert_one(to_write)
                 
 #	        else:
