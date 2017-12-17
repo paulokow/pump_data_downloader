@@ -1,3 +1,3 @@
 [submodule "decoding-contour-next-link"]
-	path = decoding-contour-next-link
+	path = decoding_contour_next_link
 	url = https://github.com/paulokow/decoding-contour-next-link.git
