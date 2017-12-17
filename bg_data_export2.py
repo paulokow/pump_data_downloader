@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
-import read_minimed_next24
+import decoding_contour_next_link
 import datetime
 import time
-from pump_history_parser import NGPHistoryEvent,BloodGlucoseReadingEvent,NormalBolusDeliveredEvent,BolusWizardEstimateEvent,BasalSegmentStartEvent,SensorGlucoseReading
+from decoding_contour_next_link import NGPHistoryEvent,BloodGlucoseReadingEvent,NormalBolusDeliveredEvent,BolusWizardEstimateEvent,BasalSegmentStartEvent,SensorGlucoseReading
 
 from datetime import datetime, timedelta
 from pymongo import MongoClient
 
 import json
-from read_minimed_next24 import HISTORY_DATA_TYPE
+from decoding_contour_next_link import HISTORY_DATA_TYPE
 
 
 class LatestActivity (object):
@@ -194,7 +194,7 @@ class LatestActivity (object):
     def run(self):
         self.init()
         if (self.checkIfRun()):
-            read_minimed_next24.downloadPumpSession(self.historyDownload)
+            decoding_contour_next_link.downloadPumpSession(self.historyDownload)
 
 if __name__ == '__main__':
     app = LatestActivity()
