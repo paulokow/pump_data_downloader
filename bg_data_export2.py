@@ -3,7 +3,7 @@
 import read_minimed_next24
 import datetime
 import time
-from pump_history_parser import NGPHistoryEvent,BloodGlucoseReadingEvent,NormalBolusDeliveredEvent,BolusWizardEstimateEvent,BasalSegmentStartEvent
+from pump_history_parser import NGPHistoryEvent,BloodGlucoseReadingEvent,NormalBolusDeliveredEvent,BolusWizardEstimateEvent,BasalSegmentStartEvent,SensorGlucoseReading
 
 from datetime import datetime, timedelta
 from pymongo import MongoClient
@@ -75,7 +75,7 @@ class LatestActivity (object):
 
         
         print "Getting history info"
-        historyInfo = mt.getPumpHistoryInfo(startdate, enddate)
+        historyInfo = mt.getPumpHistoryInfo(startdate, enddate, HISTORY_DATA_TYPE.PUMP_DATA)
         print "History start {0}".format(historyInfo.datetimeStart)
         print "History end {0}".format(historyInfo.datetimeEnd)
         print "Hisotry size {0}".format(historyInfo.historySize)
@@ -85,8 +85,21 @@ class LatestActivity (object):
     
         events = mt.processPumpHistory(history_pages, HISTORY_DATA_TYPE.PUMP_DATA)
 
+        print "Getting sensor history info"
+        historyInfoS = mt.getPumpHistoryInfo(startdate, enddate, HISTORY_DATA_TYPE.SENSOR_DATA)
+        print "History sensor start {0}".format(historyInfoS.datetimeStart)
+        print "History sensor end {0}".format(historyInfoS.datetimeEnd)
+        print "Hisotry sensor size {0}".format(historyInfoS.historySize)
+        
+        print "Getting history"
+        history_pagesS = mt.getPumpHistory(historyInfoS.historySize, startdate, enddate, HISTORY_DATA_TYPE.SENSOR_DATA)
+    
+        eventsS = mt.processPumpHistory(history_pagesS, HISTORY_DATA_TYPE.SENSOR_DATA)
+
+        eventsAll = sorted(events + eventsS, key = lambda event: event.timestamp)
+
         print "# All events:"
-        for ev in events:
+        for ev in eventsAll:
             #print ev.timestamp, datetime.utcfromtimestamp(time.mktime(ev.timestamp.timetuple()))
             if  ev.timestamp.replace(tzinfo=None) > startdate:
                 if isinstance(ev, BloodGlucoseReadingEvent):
@@ -100,6 +113,18 @@ class LatestActivity (object):
     	                }
                     self.db.bg_valueses.insert_one(to_write)
                     self.db.all_events.insert_one(to_write)
+                if isinstance(ev, SensorGlucoseReading):
+                    print "Writing: ", ev
+                    to_write = {
+                        "type": "BloodGlucoseReadingEvent",
+                        "timestamp": ev.timestamp.replace(tzinfo=None),
+                        "hour": ev.timestamp.hour,
+                        "value": ev.sg,
+                        "real": True,
+                        "sensor": True
+                        }
+                    self.db.bg_valueses.insert_one(to_write)
+                    self.db.all_events.insert_one(to_write)                                        
                 elif isinstance(ev, NormalBolusDeliveredEvent):
                     print "Writing: ", ev
                     to_write = {
