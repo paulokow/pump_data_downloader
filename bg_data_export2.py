@@ -15,7 +15,7 @@ from decoding_contour_next_link import HISTORY_DATA_TYPE
 class LatestActivity (object):
 
     def __init__(self):
-        self.db=MongoClient().bg_db_test
+        self.db=MongoClient().bg_db
     
     def get_max_bg_record(self):
         pipeline = [
@@ -156,7 +156,7 @@ class LatestActivity (object):
         
     def checkIfRun(self):
         dl = datetime.utcnow() - self.config['lastPumpRead']
-        if dl.days == 0 and dl.seconds < (60 * 60):
+        if dl.days == 0 and dl.seconds < (14 * 60):
             print 'Short time since last run:', dl
             return False
         else:
