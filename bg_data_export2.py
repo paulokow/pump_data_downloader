@@ -2,8 +2,9 @@
 
 import decoding_contour_next_link
 import datetime
+from dateutil import tz
 import time
-from decoding_contour_next_link import NGPHistoryEvent,BloodGlucoseReadingEvent,NormalBolusDeliveredEvent,BolusWizardEstimateEvent,BasalSegmentStartEvent,SensorGlucoseReading
+from decoding_contour_next_link import *
 
 from datetime import datetime, timedelta
 from pymongo import MongoClient
@@ -132,6 +133,66 @@ class LatestActivity (object):
                         "hour": ev.timestamp.hour,
                         "rate": ev.rate,
                         "patternName": ev.patternName,
+                        }
+                    self.db.all_events.insert_one(to_write)
+                elif isinstance(ev, InsulinDeliveryStoppedEvent):
+                    print "Writing: ", ev
+                    to_write = {
+                        "type": "PumpEvent",
+                        "timestamp": ev.timestamp.replace(tzinfo=None),
+                        "hour": ev.timestamp.hour,
+                        "eventtype": ev.__class__.__name__,
+                        "description": ev.suspendReasonText,
+                        }
+                    self.db.all_events.insert_one(to_write)
+                elif isinstance(ev, InsulinDeliveryRestartedEvent):
+                    print "Writing: ", ev
+                    to_write = {
+                        "type": "PumpEvent",
+                        "timestamp": ev.timestamp.replace(tzinfo=None),
+                        "hour": ev.timestamp.hour,
+                        "eventtype": ev.__class__.__name__,
+                        "description": ev.resumeReasonText,
+                        }
+                    self.db.all_events.insert_one(to_write)
+                elif isinstance(ev, AlarmNotificationEvent):
+                    print "Writing: ", ev
+                    to_write = {
+                        "type": "PumpEvent",
+                        "timestamp": ev.timestamp.replace(tzinfo=None),
+                        "hour": ev.timestamp.hour,
+                        "eventtype": ev.__class__.__name__,
+                        "description": "Alarm notification",
+                        }
+                    self.db.all_events.insert_one(to_write)
+                elif isinstance(ev, AlarmClearedEvent):
+                    print "Writing: ", ev
+                    to_write = {
+                        "type": "PumpEvent",
+                        "timestamp": ev.timestamp.replace(tzinfo=None),
+                        "hour": ev.timestamp.hour,
+                        "eventtype": ev.__class__.__name__,
+                        "description": "Alarm notification cleared",
+                        }
+                    self.db.all_events.insert_one(to_write)
+                elif isinstance(ev, SensorAlertSilenceStartedEvent):
+                    print "Writing: ", ev
+                    to_write = {
+                        "type": "PumpEvent",
+                        "timestamp": ev.timestamp.replace(tzinfo=None),
+                        "hour": ev.timestamp.hour,
+                        "eventtype": ev.__class__.__name__,
+                        "description": "Sensor alarm silence start",
+                        }
+                    self.db.all_events.insert_one(to_write)
+                elif isinstance(ev, SensorAlertSilenceEndedEvent):
+                    print "Writing: ", ev
+                    to_write = {
+                        "type": "PumpEvent",
+                        "timestamp": ev.timestamp.replace(tzinfo=None),
+                        "hour": ev.timestamp.hour,
+                        "eventtype": ev.__class__.__name__,
+                        "description": "Sensor alarm silence end",
                         }
                     self.db.all_events.insert_one(to_write)
                 
