@@ -46,8 +46,10 @@ class LatestActivity (object):
             }
 
     def historyDownload(self, mt):
-        enddate=datetime.now().replace(tzinfo=None)
         startdate=self.get_max_bg_record().replace(tzinfo=None) + timedelta(0,1)
+        enddate=datetime.now().replace(tzinfo=None)
+        if enddate - startdate > timedelta(days=1):
+            enddate = startdate + timedelta(days=1)
         print "Download from {0} to {1}".format(startdate.isoformat(), enddate.isoformat())
 
         
