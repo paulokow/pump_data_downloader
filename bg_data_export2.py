@@ -21,6 +21,19 @@ class LatestActivity (object):
     def get_max_bg_record(self):
         pipeline = [
             {
+              "$match": {
+                  "status": {
+                      "$in": [
+                          "BloodGlucoseReadingEvent",
+                          "NormalBolusDeliveredEvent",
+                          "BolusWizardEstimateEvent",
+                          "BasalSegmentStartEvent",
+                          "PumpEvent"
+                      ]
+                  }
+              }
+            },
+            {
               "$group": {
                 "_id": "$item",
                 "date": { "$max": "$timestamp"}
