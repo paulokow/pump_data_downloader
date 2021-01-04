@@ -62,7 +62,10 @@ class LatestActivity (object):
             "tempBasalPercentage": status.tempBasalPercentage,
             "tempBasalMinutesRemaining": status.tempBasalMinutesRemaining,
             "batteryLevelPercentage": status.batteryLevelPercentage,
-            "insulinUnitsRemaining": status.insulinUnitsRemaining
+            "insulinUnitsRemaining": status.insulinUnitsRemaining,
+            "sensorStatus": status.sensorStatus,
+            "sensorCalibrationMinutesRemaining": status.sensorCalibrationMinutesRemaining,
+            "sensorBatteryPercent": status.sensorBatteryPercent,
         }
         self.db.all_events.insert_one(to_write)
 
