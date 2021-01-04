@@ -22,7 +22,7 @@ class LatestActivity (object):
         pipeline = [
             {
               "$match": {
-                  "status": {
+                  "type": {
                       "$in": [
                           "BloodGlucoseReadingEvent",
                           "NormalBolusDeliveredEvent",
