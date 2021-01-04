@@ -66,6 +66,7 @@ class LatestActivity (object):
             "sensorStatus": status.sensorStatus,
             "sensorCalibrationMinutesRemaining": status.sensorCalibrationMinutesRemaining,
             "sensorBatteryPercent": status.sensorBatteryPercent,
+            "sensorControl": status.sensorControl,
         }
         self.db.all_events.insert_one(to_write)
 
