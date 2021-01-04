@@ -45,7 +45,31 @@ class LatestActivity (object):
                 "lastPumpRead": datetime.min
             }
 
+    def statusDownload(self, mt):
+        currenttimestamp=datetime.now().replace(tzinfo=None)
+        status = mt.getPumpStatus();
+        print "Writing: ", status
+        to_write = {
+            "type": "PumpStatusEvent",
+            "timestamp": currenttimestamp,
+            "hour": currenttimestamp.hour,
+            "sensorBGL": status.sensorBGL,
+            "trendArrow": status.trendArrow,
+            "sensorBGLTimestamp": status.sensorBGLTimestamp,
+            "activeInsulin": status.activeInsulin
+            "currentBasalRate": status.currentBasalRate,
+            "tempBasalRate": status.tempBasalRate,
+            "tempBasalPercentage": status.tempBasalPercentage,
+            "tempBasalMinutesRemaining": status.tempBasalMinutesRemaining,
+            "batteryLevelPercentage": status.batteryLevelPercentage,
+            "insulinUnitsRemaining": status.insulinUnitsRemaining
+        }
+        self.db.all_events.insert_one(to_write)
+
     def historyDownload(self, mt):
+        # download status first anyway
+        self.statusDownload(mt)
+        # now proceed to download other values
         enddate=datetime.now().replace(tzinfo=None)
         startdate=self.get_max_bg_record().replace(tzinfo=None) + timedelta(0,1)
         print "Download from {0} to {1}".format(startdate.isoformat(), enddate.isoformat())
@@ -225,8 +249,10 @@ class LatestActivity (object):
     
     def run(self):
         self.init()
-        if (self.checkIfRun()):
+        if self.checkIfRun():
             decoding_contour_next_link.downloadPumpSession(self.historyDownload)
+        else:
+            decoding_contour_next_link.downloadPumpSession(self.statusDownload)
 
 if __name__ == '__main__':
     app = LatestActivity()
