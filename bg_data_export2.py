@@ -56,7 +56,7 @@ class LatestActivity (object):
             "sensorBGL": status.sensorBGL,
             "trendArrow": status.trendArrow,
             "sensorBGLTimestamp": status.sensorBGLTimestamp,
-            "activeInsulin": status.activeInsulin
+            "activeInsulin": status.activeInsulin,
             "currentBasalRate": status.currentBasalRate,
             "tempBasalRate": status.tempBasalRate,
             "tempBasalPercentage": status.tempBasalPercentage,
