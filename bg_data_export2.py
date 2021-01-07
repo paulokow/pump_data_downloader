@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from os import stat
 import decoding_contour_next_link
 import datetime
 from dateutil import tz
@@ -12,6 +13,7 @@ from pymongo import MongoClient
 import json
 from decoding_contour_next_link import HISTORY_DATA_TYPE
 
+import os.path
 
 class LatestActivity (object):
 
@@ -68,6 +70,7 @@ class LatestActivity (object):
             "hour": currenttimestamp.hour,
             "sensorBGL": status.sensorBGL,
             "trendArrow": status.trendArrow,
+            "trendArrowValue": status.trendArrowValue,
             "sensorBGLTimestamp": status.sensorBGLTimestamp,
             "activeInsulin": status.activeInsulin,
             "currentBasalRate": status.currentBasalRate,
@@ -77,11 +80,39 @@ class LatestActivity (object):
             "batteryLevelPercentage": status.batteryLevelPercentage,
             "insulinUnitsRemaining": status.insulinUnitsRemaining,
             "sensorStatus": status.sensorStatus,
+            "sensorStatusValue": status.sensorStatusValue,
             "sensorCalibrationMinutesRemaining": status.sensorCalibrationMinutesRemaining,
             "sensorBatteryPercent": status.sensorBatteryPercent,
             "sensorControl": status.sensorControl,
+            "sensorControlValue": status.sensorControlValue,
         }
         self.db.all_events.insert_one(to_write)
+
+        to_write = {
+            "type": "PumpStatusEventRaw",
+            "timestamp": currenttimestamp,
+            "hour": currenttimestamp.hour,
+            "statusRaw": status.wholePayloadHex
+        }
+        self.db.all_events.insert_one(to_write)
+
+        # if there is a configuration for pushover, then we send some notifications
+        if os.path.isfile("~/.pushoverrc"):
+            import pushover
+
+            if status.sensorStatusValue == 0x10 \
+                and status.sensorCalibrationMinutesRemaining > 0 \
+                and status.sensorCalibrationMinutesRemaining < 10:
+                pushover.Client().send_message(
+                    "Calibration in {} minutes".format(status.sensorCalibrationMinutesRemaining),
+                    title="Calibration soon")
+            if status.sensorStatusValue == 0x14 \
+                and status.sensorCalibrationMinutesRemaining == 0:
+                pushover.Client().send_message(
+                    "Calibration already passed!".format(status.sensorCalibrationMinutesRemaining),
+                    title="Calibration needed!")
+
+
 
     def historyDownload(self, mt):
         # download status first anyway
