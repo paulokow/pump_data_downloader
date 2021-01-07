@@ -68,6 +68,7 @@ class LatestActivity (object):
             "hour": currenttimestamp.hour,
             "sensorBGL": status.sensorBGL,
             "trendArrow": status.trendArrow,
+            "trendArrowValue": status.trendArrowValue,
             "sensorBGLTimestamp": status.sensorBGLTimestamp,
             "activeInsulin": status.activeInsulin,
             "currentBasalRate": status.currentBasalRate,
@@ -77,9 +78,19 @@ class LatestActivity (object):
             "batteryLevelPercentage": status.batteryLevelPercentage,
             "insulinUnitsRemaining": status.insulinUnitsRemaining,
             "sensorStatus": status.sensorStatus,
+            "sensorStatusValue": status.sensorStatusValue,
             "sensorCalibrationMinutesRemaining": status.sensorCalibrationMinutesRemaining,
             "sensorBatteryPercent": status.sensorBatteryPercent,
             "sensorControl": status.sensorControl,
+            "sensorControlValue": status.sensorControlValue,
+        }
+        self.db.all_events.insert_one(to_write)
+
+        to_write = {
+            "type": "PumpStatusEventRaw",
+            "timestamp": currenttimestamp,
+            "hour": currenttimestamp.hour,
+            "statusRaw": status.wholePayloadHex
         }
         self.db.all_events.insert_one(to_write)
 
