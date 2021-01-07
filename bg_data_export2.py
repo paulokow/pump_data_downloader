@@ -68,7 +68,9 @@ class LatestActivity (object):
             "type": "PumpStatusEvent",
             "timestamp": currenttimestamp,
             "hour": currenttimestamp.hour,
-            "sensorBGL": status.sensorBGL,
+            "sensorBGL": status.sensorBGL
+                if status.sensorStatusValue != 0x00 or status.sensorBGL != 0x00 \
+                    else None,
             "trendArrow": status.trendArrow,
             "trendArrowValue": status.trendArrowValue,
             "sensorBGLTimestamp": status.sensorBGLTimestamp,
@@ -81,8 +83,12 @@ class LatestActivity (object):
             "insulinUnitsRemaining": status.insulinUnitsRemaining,
             "sensorStatus": status.sensorStatus,
             "sensorStatusValue": status.sensorStatusValue,
-            "sensorCalibrationMinutesRemaining": status.sensorCalibrationMinutesRemaining,
-            "sensorBatteryPercent": status.sensorBatteryPercent,
+            "sensorCalibrationMinutesRemaining": status.sensorCalibrationMinutesRemaining \
+                if status.sensorStatusValue != 0x00 or status.sensorCalibrationMinutesRemaining != 0x00 \
+                    else None,
+            "sensorBatteryPercent": status.sensorBatteryPercent \
+                if status.sensorStatusValue != 0x00 or status.sensorBatteryPercent != 0x00 \
+                    else None,
             "sensorControl": status.sensorControl,
             "sensorControlValue": status.sensorControlValue,
         }
@@ -100,17 +106,29 @@ class LatestActivity (object):
         if os.path.isfile("~/.pushoverrc"):
             import pushover
 
-            if status.sensorStatusValue == 0x10 \
-                and status.sensorCalibrationMinutesRemaining > 0 \
-                and status.sensorCalibrationMinutesRemaining < 10:
-                pushover.Client().send_message(
-                    "Calibration in {} minutes".format(status.sensorCalibrationMinutesRemaining),
-                    title="Calibration soon")
-            if status.sensorStatusValue == 0x14 \
-                and status.sensorCalibrationMinutesRemaining == 0:
-                pushover.Client().send_message(
-                    "Calibration already passed!".format(status.sensorCalibrationMinutesRemaining),
-                    title="Calibration needed!")
+            # ignore if sensor not present
+            if not (status.sensorStatusValue == 0x00 \
+                and status.sensorCalibrationMinutesRemaining == 0x00
+                and status.sensorBatteryPercent == 0x00 \
+                and status.sensorBGL == 0x00):
+
+                # calibration coming soon
+                if (status.sensorStatusValue == 0x10 or status.sensorStatusValue == 0x00) \
+                    and status.sensorCalibrationMinutesRemaining > 0 \
+                    and status.sensorCalibrationMinutesRemaining < 10:
+                    print("Notifying calibration needed soon.")
+                    ret = pushover.Client().send_message(
+                        "Calibration in {} minutes".format(status.sensorCalibrationMinutesRemaining),
+                        title="Calibration soon")
+                    print(ret)
+                # calibration time passed
+                if status.sensorStatusValue == 0x14 \
+                    and status.sensorCalibrationMinutesRemaining == 0:
+                    print("Notifying calibration needed NOW.")
+                    ret = pushover.Client().send_message(
+                        "Calibration already passed!".format(status.sensorCalibrationMinutesRemaining),
+                        title="Calibration needed!")
+                    print(ret)
 
 
 
