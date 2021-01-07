@@ -7,7 +7,7 @@ from dateutil import tz
 import time
 from decoding_contour_next_link import *
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from pymongo import MongoClient
 
 import json
@@ -103,7 +103,7 @@ class LatestActivity (object):
         self.db.all_events.insert_one(to_write)
 
         # if there is a configuration for pushover, then we send some notifications
-        if os.path.isfile("~/.pushoverrc"):
+        if os.path.isfile(os.path.expanduser("~/.pushoverrc")):
             import pushover
 
             # ignore if sensor not present
@@ -119,18 +119,39 @@ class LatestActivity (object):
                     print("Notifying calibration needed soon.")
                     ret = pushover.Client().send_message(
                         "Calibration in {} minutes".format(status.sensorCalibrationMinutesRemaining),
-                        title="Calibration soon")
+                        title="Calibration soon",
+                        url="https://paulonet.eu/bgmonitor/")
                     print(ret)
+
                 # calibration time passed
                 if status.sensorStatusValue == 0x14 \
                     and status.sensorCalibrationMinutesRemaining == 0:
                     print("Notifying calibration needed NOW.")
                     ret = pushover.Client().send_message(
                         "Calibration already passed!".format(status.sensorCalibrationMinutesRemaining),
-                        title="Calibration needed!")
+                        title="Calibration needed!",
+                        url="https://paulonet.eu/bgmonitor/")
                     print(ret)
 
+                # calibration needed in the evening
+                if datetime.now().time() > time(23, 00) \
+                    and (datetime.now() + timedelta(minutes=status.sensorCalibrationMinutesRemaining)).time() < time(7, 00):
+                    print("Evening calibration needed.")
+                    ret = pushover.Client().send_message(
+                        "Next calibration planned at {}.".format((datetime.now() + timedelta(minutes=status.sensorCalibrationMinutesRemaining)).time()),
+                        title="Evening calibration needed!",
+                        url="https://paulonet.eu/bgmonitor/")
+                    print(ret)
 
+                # battery change needed in the evening
+                if datetime.now().time() > time(22, 00) \
+                    and status.batteryLevelPercentage < 25:
+                    print("Consider battery change.")
+                    ret = pushover.Client().send_message(
+                        "Current battery level: {}%.".format(status.batteryLevelPercentage),
+                        title="Consider battery change.",
+                        url="https://paulonet.eu/bgmonitor/")
+                    print(ret)
 
     def historyDownload(self, mt):
         # download status first anyway
