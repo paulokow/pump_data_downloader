@@ -30,8 +30,8 @@ CMD [ "sleep", "infinity" ]
 
 # [Optional] Uncomment this section to install additional OS packages.
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
-    && apt-get -y install --no-install-recommends python python-pip python-dev python-setuptools build-essential autoconf libtool pkg-config \
-    # && apt-get -y install --no-install-recommends python3 python3-pip python3-dev build-essential autoconf libtool pkg-config\
+    && apt-get -y install --no-install-recommends python python-pip python-dev python-setuptools build-essential autoconf libtool pkg-config libusb-1.0-0-dev liblzo2-dev libudev-dev  \
+    # && apt-get -y install --no-install-recommends python3 python3-pip python3-dev build-essential autoconf libtool pkg-config libusb-1.0-0-dev liblzo2-dev libudev-dev \
     # && update-alternatives --install /usr/bin/python python /usr/bin/python3.5 1 \
     # && update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1 \
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/library-scripts/ \
