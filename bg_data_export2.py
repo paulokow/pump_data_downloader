@@ -129,7 +129,20 @@ class LatestActivity (object):
                     ret = pushover.Client().send_message(
                         "High sugar {} and low active insulin {}".format(status.sensorBGL, status.activeInsulin),
                         title="High sugar level. Correction needed.",
-                        url="https://paulonet.eu/bgmonitor/")
+                        url="https://paulonet.eu/bgmonitor/",
+                        priority=1)
+                    print(ret)
+
+                # high sugar value and no active insulin
+                if status.sensorBGL is not None \
+                    and status.sensorBGL < 60 \
+                    and status.sensorBGL + 15 * status.sensorRateOfChangePerMin < 70:
+                    print("Notifying low sugar level.")
+                    ret = pushover.Client().send_message(
+                        "Low sugar {}. In 15 minutes predicted {}.".format(status.sensorBGL, status.sensorBGL + 15 * status.sensorRateOfChangePerMin),
+                        title="Low sugar level.",
+                        url="https://paulonet.eu/bgmonitor/",
+                        priority=2)
                     print(ret)
 
                 # calibration coming soon
@@ -150,7 +163,8 @@ class LatestActivity (object):
                     ret = pushover.Client().send_message(
                         "Calibration already passed!".format(status.sensorCalibrationMinutesRemaining),
                         title="Calibration needed!",
-                        url="https://paulonet.eu/bgmonitor/")
+                        url="https://paulonet.eu/bgmonitor/",
+                        priority=2)
                     print(ret)
 
                 # calibration needed in the evening
@@ -160,7 +174,8 @@ class LatestActivity (object):
                     ret = pushover.Client().send_message(
                         "Next calibration planned at {}.".format((datetime.now() + timedelta(minutes=status.sensorCalibrationMinutesRemaining)).time()),
                         title="Evening calibration needed!",
-                        url="https://paulonet.eu/bgmonitor/")
+                        url="https://paulonet.eu/bgmonitor/",
+                        priority=1)
                     print(ret)
 
                 # battery change needed in the evening
@@ -170,7 +185,8 @@ class LatestActivity (object):
                     ret = pushover.Client().send_message(
                         "Current battery level: {}%.".format(status.batteryLevelPercentage),
                         title="Consider battery change.",
-                        url="https://paulonet.eu/bgmonitor/")
+                        url="https://paulonet.eu/bgmonitor/",
+                        priority=1)
                     print(ret)
 
     def historyDownload(self, mt):
