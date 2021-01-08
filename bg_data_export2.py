@@ -69,7 +69,7 @@ class LatestActivity (object):
             "timestamp": currenttimestamp,
             "hour": currenttimestamp.hour,
             "sensorBGL": status.sensorBGL
-                if status.sensorStatusValue != 0x00 or status.sensorBGL != 0x00 \
+                if status.StatusCgm \
                     else None,
             "trendArrow": status.trendArrow,
             "trendArrowValue": status.trendArrowValue,
@@ -84,13 +84,24 @@ class LatestActivity (object):
             "sensorStatus": status.sensorStatus,
             "sensorStatusValue": status.sensorStatusValue,
             "sensorCalibrationMinutesRemaining": status.sensorCalibrationMinutesRemaining \
-                if status.sensorStatusValue != 0x00 or status.sensorCalibrationMinutesRemaining != 0x00 \
+                if status.StatusCgm \
                     else None,
             "sensorBatteryPercent": status.sensorBatteryPercent \
-                if status.sensorStatusValue != 0x00 or status.sensorBatteryPercent != 0x00 \
+                if status.StatusCgm \
                     else None,
             "sensorControl": status.sensorControl,
             "sensorControlValue": status.sensorControlValue,
+            "StatusCgm": status.StatusCgm,
+            "StatusTempBasal": status.StatusTempBasal,
+            "StatusInsulinDelivery": status.StatusInsulinDelivery,
+            "StatusBolusingDual": status.StatusBolusingDual,
+            "StatusBolusingSquare": status.StatusBolusingSquare,
+            "StatusBolusingNormal": status.StatusBolusingNormal,
+            "StatusSuspended": status.StatusSuspended,
+            "lastBolusAmount": status.lastBolusAmount,
+            "lastBolusTimestamp": status.lastBolusTimestamp,
+            "bolusWizardBGL": status.bolusWizardBGL,
+            "sensorRateOfChangePerMin": status.sensorRateOfChangePerMin,
         }
         self.db.all_events.insert_one(to_write)
 
