@@ -118,10 +118,19 @@ class LatestActivity (object):
             import pushover
 
             # ignore if sensor not present
-            if not (status.sensorStatusValue == 0x00 \
-                and status.sensorCalibrationMinutesRemaining == 0x00
-                and status.sensorBatteryPercent == 0x00 \
-                and status.sensorBGL == 0x00):
+            if status.StatusCgm:
+
+                # high sugar value and no active insulin
+                if status.sensorBGL is not None \
+                    and status.sensorBGL > 250 \
+                    and (status.activeInsulin < 1.0
+                        or (currenttimestamp - status.lastBolusTimestamp > datetime.timestamp(hours=1))):
+                    print("Notifying high sugar level.")
+                    ret = pushover.Client().send_message(
+                        "High sugar {} and low active insulin {}".format(status.sensorBGL, status.activeInsulin),
+                        title="High sugar level. Correction needed.",
+                        url="https://paulonet.eu/bgmonitor/")
+                    print(ret)
 
                 # calibration coming soon
                 if (status.sensorStatusValue == 0x10 or status.sensorStatusValue == 0x00) \
