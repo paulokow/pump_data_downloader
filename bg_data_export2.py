@@ -184,7 +184,7 @@ class LatestActivity (object):
 
                 # battery change needed in the evening
                 if datetime.now().time() > time(22, 00) \
-                    and status.batteryLevelPercentage < 25:
+                    and status.batteryLevelPercentage <= 25:
                     print("Consider battery change.")
                     ret = pushover.Client().send_message(
                         "Current battery level: {}%.".format(status.batteryLevelPercentage),
