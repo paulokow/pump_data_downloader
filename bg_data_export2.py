@@ -136,7 +136,7 @@ class LatestActivity (object):
                             priority=1)
                         print(ret)
 
-                    # high sugar value and no active insulin
+                    # low sugar value
                     if status.sensorBGL is not None \
                         and status.sensorBGL < 60 \
                         and status.sensorBGL + 15 * status.sensorRateOfChangePerMin < 70:
@@ -145,7 +145,7 @@ class LatestActivity (object):
                             "Low sugar {}. In 15 minutes predicted {}.".format(status.sensorBGL, status.sensorBGL + 15 * status.sensorRateOfChangePerMin),
                             title="Low sugar level.",
                             url="https://paulonet.eu/bgmonitor/",
-                            priority=2)
+                            priority=1)
                         print(ret)
 
                 # calibration coming soon
@@ -168,7 +168,7 @@ class LatestActivity (object):
                         "Calibration already passed!".format(status.sensorCalibrationMinutesRemaining),
                         title="Calibration needed!",
                         url="https://paulonet.eu/bgmonitor/",
-                        priority=2)
+                        priority=1)
                     print(ret)
 
                 # calibration needed in the evening
