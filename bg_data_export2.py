@@ -160,8 +160,9 @@ class LatestActivity (object):
                     print(ret)
 
                 # calibration time passed
-                if status.sensorStatusValue == 0x14 \
-                    and status.sensorCalibrationMinutesRemaining == 0:
+                if status.sensorStatusValue & 0x04 != 0  \
+                    and (status.sensorCalibrationMinutesRemaining == 0 \
+                        or status.trendArrow == "Calibration needed"):
                     print("Notifying calibration needed NOW.")
                     ret = pushover.Client().send_message(
                         "Calibration already passed!".format(status.sensorCalibrationMinutesRemaining),
