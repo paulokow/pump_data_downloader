@@ -120,7 +120,7 @@ class LatestActivity (object):
             # ignore if sensor not present
             if status.StatusCgm:
                 
-                if status.sensorBGL & 0x20 == 0 \
+                if status.sensorBGL & 0x200 == 0 \
                     and status.trendArrow != "Calibration needed":
                     
                     # high sugar value and no active insulin
