@@ -142,7 +142,7 @@ class LatestActivity (object):
                         and status.sensorBGL + 15 * status.sensorRateOfChangePerMin < 70:
                         print("Notifying low sugar level.")
                         ret = pushover.Client().send_message(
-                            "Low sugar {}. In 15 minutes predicted {}.".format(status.sensorBGL, status.sensorBGL + 15 * status.sensorRateOfChangePerMin),
+                            "Low sugar {}. In 15 minutes predicted {}.".format(status.sensorBGL, status.sensorBGL + int(15 * status.sensorRateOfChangePerMin)),
                             title="Low sugar level.",
                             url="https://paulonet.eu/bgmonitor/",
                             priority=1)
@@ -151,10 +151,11 @@ class LatestActivity (object):
                 # calibration coming soon
                 if (status.sensorStatusValue == 0x10 or status.sensorStatusValue == 0x00) \
                     and status.sensorCalibrationMinutesRemaining > 0 \
-                    and status.sensorCalibrationMinutesRemaining < 10:
+                    and status.sensorCalibrationMinutesRemaining <= 10:
+                    calibrationdatetime = status.timestamp + timedelta(minutes=status.sensorCalibrationMinutesRemaining)
                     print("Notifying calibration needed soon.")
                     ret = pushover.Client().send_message(
-                        "Calibration in {} minutes".format(status.sensorCalibrationMinutesRemaining),
+                        "Calibration in {} minutes at {:%-H:%M}.".format(status.sensorCalibrationMinutesRemaining, calibrationdatetime),
                         title="Calibration soon",
                         url="https://paulonet.eu/bgmonitor/")
                     print(ret)
@@ -176,7 +177,7 @@ class LatestActivity (object):
                     and (datetime.now() + timedelta(minutes=status.sensorCalibrationMinutesRemaining)).time() < time(7, 00):
                     print("Evening calibration needed.")
                     ret = pushover.Client().send_message(
-                        "Next calibration planned at {}.".format((datetime.now() + timedelta(minutes=status.sensorCalibrationMinutesRemaining)).time()),
+                        "Next calibration planned at {:%-H:%M}.".format((datetime.now() + timedelta(minutes=status.sensorCalibrationMinutesRemaining)).time()),
                         title="Evening calibration needed!",
                         url="https://paulonet.eu/bgmonitor/",
                         priority=1)
