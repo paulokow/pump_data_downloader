@@ -119,31 +119,34 @@ class LatestActivity (object):
 
             # ignore if sensor not present
             if status.StatusCgm:
+                
+                if status.sensorBGL & 0x20 == 0 \
+                    and status.trendArrow != "Calibration needed":
+                    
+                    # high sugar value and no active insulin
+                    if status.sensorBGL is not None \
+                        and status.sensorBGL > 250 \
+                        and (status.activeInsulin < 1.0
+                            or (currenttimestamp - status.lastBolusTimestamp > datetime.timestamp(hours=1))):
+                        print("Notifying high sugar level.")
+                        ret = pushover.Client().send_message(
+                            "High sugar {} and low active insulin {}".format(status.sensorBGL, status.activeInsulin),
+                            title="High sugar level. Correction needed.",
+                            url="https://paulonet.eu/bgmonitor/",
+                            priority=1)
+                        print(ret)
 
-                # high sugar value and no active insulin
-                if status.sensorBGL is not None \
-                    and status.sensorBGL > 250 \
-                    and (status.activeInsulin < 1.0
-                        or (currenttimestamp - status.lastBolusTimestamp > datetime.timestamp(hours=1))):
-                    print("Notifying high sugar level.")
-                    ret = pushover.Client().send_message(
-                        "High sugar {} and low active insulin {}".format(status.sensorBGL, status.activeInsulin),
-                        title="High sugar level. Correction needed.",
-                        url="https://paulonet.eu/bgmonitor/",
-                        priority=1)
-                    print(ret)
-
-                # high sugar value and no active insulin
-                if status.sensorBGL is not None \
-                    and status.sensorBGL < 60 \
-                    and status.sensorBGL + 15 * status.sensorRateOfChangePerMin < 70:
-                    print("Notifying low sugar level.")
-                    ret = pushover.Client().send_message(
-                        "Low sugar {}. In 15 minutes predicted {}.".format(status.sensorBGL, status.sensorBGL + 15 * status.sensorRateOfChangePerMin),
-                        title="Low sugar level.",
-                        url="https://paulonet.eu/bgmonitor/",
-                        priority=2)
-                    print(ret)
+                    # high sugar value and no active insulin
+                    if status.sensorBGL is not None \
+                        and status.sensorBGL < 60 \
+                        and status.sensorBGL + 15 * status.sensorRateOfChangePerMin < 70:
+                        print("Notifying low sugar level.")
+                        ret = pushover.Client().send_message(
+                            "Low sugar {}. In 15 minutes predicted {}.".format(status.sensorBGL, status.sensorBGL + 15 * status.sensorRateOfChangePerMin),
+                            title="Low sugar level.",
+                            url="https://paulonet.eu/bgmonitor/",
+                            priority=2)
+                        print(ret)
 
                 # calibration coming soon
                 if (status.sensorStatusValue == 0x10 or status.sensorStatusValue == 0x00) \
