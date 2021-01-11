@@ -9,9 +9,14 @@ from decoding_contour_next_link.read_minimed_next24 import Medtronic600SeriesDri
 
 from datetime import datetime, time, timedelta
 
+from pymongo import MongoClient
+
 class TestBGDataExport(unittest.TestCase):
 
     def test_statusDownload(self):
+        db=MongoClient(host="mongo", username="root", password="example").bg_db_test
+        db.all_events.delete_many({})
+
         testobj = LatestActivity(host="mongo", username="root", password="example")
         
         drivermock = Mock(spec=Medtronic600SeriesDriver)
@@ -55,6 +60,9 @@ class TestBGDataExport(unittest.TestCase):
 
             client.return_value.send_message.assert_called_once()
 
+            client.return_value.send_message.reset_mock()
+            testobj.statusDownload(drivermock)
+            client.return_value.send_message.assert_not_called()
 
 
 if __name__ == '__main__':
