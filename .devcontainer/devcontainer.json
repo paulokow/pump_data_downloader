@@ -25,7 +25,9 @@
         "mikeshaker.python-essentials",
         "donjayamanne.python-extension-pack",
         "himanoa.python-autopep8",
-        "ms-python.vscode-pylance"
+        "ms-python.vscode-pylance",
+        "littlefoxteam.vscode-python-test-adapter",
+        "cweijan.vscode-office",
     ],
 
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
