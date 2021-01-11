@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 from os import stat
+
+import pymongo
 import decoding_contour_next_link
 import datetime
 from dateutil import tz
@@ -17,8 +19,8 @@ import os.path
 
 class LatestActivity (object):
 
-    def __init__(self):
-        self.db=MongoClient().bg_db_test
+    def __init__(self, db="bg_db_test", *args, **kwargs):
+        self.db=MongoClient(*args, **kwargs)[db]
     
     def get_max_bg_record(self):
         pipeline = [
@@ -63,7 +65,15 @@ class LatestActivity (object):
     def statusDownload(self, mt):
         currenttimestamp=datetime.now().replace(tzinfo=None)
         status = mt.getPumpStatus();
-        print "Writing: ", status
+
+        last_entry_cur = self.db.all_events.find({"type": "PumpStatusEvent"}).sort("timestamp", pymongo.DESCENDING).limit(1)
+        try:
+            last_entry = last_entry_cur.next()
+        except StopIteration:
+            last_entry = None
+        print("Last entry: {}".format(last_entry))
+
+        print("Writing: {}".format(status))
         to_write = {
             "type": "PumpStatusEvent",
             "timestamp": currenttimestamp,
@@ -163,7 +173,8 @@ class LatestActivity (object):
                 # calibration time passed
                 if status.sensorStatusValue & 0x04 != 0  \
                     and (status.sensorCalibrationMinutesRemaining == 0 \
-                        or status.trendArrow == "Calibration needed"):
+                        or status.trendArrow == "Calibration needed") \
+                    and (last_entry is None or not last_entry["StatusCgm"] or last_entry["trendArrow"] != "Calibration needed"):
                     print("Notifying calibration needed NOW.")
                     ret = pushover.Client().send_message(
                         "Calibration already passed!".format(status.sensorCalibrationMinutesRemaining),
