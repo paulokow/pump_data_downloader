@@ -1,3 +1,4 @@
+import os
 import unittest
 try:
     from unittest.mock import Mock, patch, MagicMock
@@ -20,40 +21,13 @@ class TestBGDataExport(unittest.TestCase):
         testobj = LatestActivity(host="mongo", username="root", password="example")
         
         drivermock = Mock(spec=Medtronic600SeriesDriver)
-        status = Mock(spec=PumpStatusResponseMessage)
-        status.sensorBGL = 300
-        status.trendArrow = "Calibration needed"
-        status.trendArrowValue = 0xE0
-        status.sensorBGLTimestamp = datetime.now()
-        status.activeInsulin = 0.7
-        status.currentBasalRate = 0.65
-        status.tempBasalRate = None
-        status.tempBasalPercentage = 150
-        status.tempBasalMinutesRemaining = 10
-        status.batteryLevelPercentage = 50
-        status.insulinUnitsRemaining = 10
-        status.sensorStatus = "OK"
-        status.sensorStatusValue = 0x14
-        status.sensorCalibrationMinutesRemaining = 0
-        status.sensorBatteryPercent = 100
-        status.sensorControl = "0x00"
-        status.sensorControlValue = 0x00
-        status.StatusCgm = True
-        status.StatusTempBasal = False
-        status.StatusInsulinDelivery = True
-        status.StatusBolusingDual = False
-        status.StatusBolusingSquare = False
-        status.StatusBolusingNormal = False
-        status.StatusSuspended = False
-        status.lastBolusAmount = 0.8
-        status.lastBolusTimestamp = datetime.now() + timedelta(hours=-1)
-        status.bolusWizardBGL = None
-        status.sensorRateOfChangePerMin = None
-        status.wholePayloadHex = ""
+        status = PumpStatusResponseMessage()
+        status.responsePayload = bytearray.fromhex('02013C5000000000000000000000000000002328278BDD283A000100000DAC000000000000000000AAE619001BBE8A190000000000030286764112A115F66700E01400000029000000000000000000000000000000000000000008C8000008C8')
 
         drivermock.getPumpStatus.return_value = status
 
         with patch("pushover.Client", autospec=True) as client:
+            open(os.path.expanduser("~/.pushoverrc"), 'a').close()
             client.return_value = MagicMock()
             client.return_value.send_message.return_value = { "ok": 1}
             testobj.statusDownload(drivermock)
