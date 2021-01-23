@@ -181,7 +181,7 @@ class LatestActivity (object):
                         and last_entry["sensorCalibrationMinutesRemaining"] == 0):
                     print("Notifying calibration needed NOW.")
                     ret = pushover.Client().send_message(
-                        "Calibration already passed!".format(status.sensorCalibrationMinutesRemaining),
+                        "Calibration already passed!",
                         title="Calibration needed!",
                         url="https://paulonet.eu/bgmonitor/",
                         priority=1)
