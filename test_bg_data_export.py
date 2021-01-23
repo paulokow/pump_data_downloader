@@ -55,8 +55,6 @@ class TestBGDataExport(unittest.TestCase):
         testobj = LatestActivity(host="mongo", username="root", password="example")
         
         drivermock = Mock(spec=Medtronic600SeriesDriver)
-        status = PumpStatusResponseMessage()
-        status.responsePayload = bytearray.fromhex('02013C5000000000000000000000000000002328278BDD283A000100000DAC000000000000000000AAE619001BBE8A190000000000030286764112A115F66700E01400000029000000000000000000000000000000000000000008C8000008C8')
 
         drivermock.getPumpStatus.side_effect = [
             PumpStatusResponseMessage(
@@ -105,6 +103,66 @@ class TestBGDataExport(unittest.TestCase):
                 client.return_value.send_message.reset_mock()
 
                 # fifth download - alert event (calibration now)
+                testobj.statusDownload(drivermock)
+                client.return_value.send_message.assert_called_once()
+                client.return_value.send_message.assert_called_once_with(
+                    "Calibration already passed!",
+                    title="Calibration needed!",
+                    url="https://paulonet.eu/bgmonitor/",
+                    priority=1)
+
+    def test_statusDownload_first_calibration(self):
+        events = [
+            "02013C5000000000000000000000000000000BB82799FA6E4100010000186A000000000000000001CEE4640022E8861900000003E8030186842870A115F66800E00400000F3D000000000000000000000000000000000000000008FB000008FB",
+            "02013C5000000000000000000000000000000BB82799FA6E41000100001676000000000000000001D0D8640022E6921900000003E803018684299CA115F66800E00400000A3D000000000000000000000000000000000000000008FB000008FB",
+            "02013C5000000000000000000000000000000BB82799FA6E41000100001676000000000000000001D2CC640022E49E1900000003E8030186842AC8A115F66800E0040000053D000000000000000000000000000000000000000008FB000008FB",
+            "02013C5000000000000000000000000000000BB82799FA6E41000100001676000000000000000001D4C0640022E2AA190000000000030286842BF4A115F66800E0040000003D000000000000000000000000000000000000000008FC000008FC",
+        ]
+
+        db=MongoClient(host="mongo", username="root", password="example").bg_db_test
+        db.all_events.delete_many({})
+
+        testobj = LatestActivity(host="mongo", username="root", password="example")
+        
+        drivermock = Mock(spec=Medtronic600SeriesDriver)
+
+        drivermock.getPumpStatus.side_effect = [
+            PumpStatusResponseMessage(
+                responsePayload=bytearray.fromhex(x)
+            ) for x in events
+        ]
+
+        with patch("pushover.Client", autospec=True) as client:
+            with patch("bg_data_export2.datetime") as time:
+                time.now.return_value = datetime(2021, 1, 20, 13, 0, 9)
+                open(os.path.expanduser("~/.pushoverrc"), 'a').close()
+                client.return_value = MagicMock()
+                client.return_value.send_message.return_value = { "ok": 1}
+
+                # first download - no event (15 mins)
+                testobj.statusDownload(drivermock)
+                client.return_value.send_message.assert_not_called()
+                client.return_value.send_message.reset_mock()
+
+                # second download - warning event (10 mins)
+                testobj.statusDownload(drivermock)
+                client.return_value.send_message.assert_called_once_with(
+                    "Calibration in 10 minutes at 13:10.",
+                    title="Calibration soon",
+                    url="https://paulonet.eu/bgmonitor/"
+                )
+                client.return_value.send_message.reset_mock()
+
+                # third download - warning event (5 mins)
+                testobj.statusDownload(drivermock)
+                client.return_value.send_message.assert_called_once_with(
+                    "Calibration in 5 minutes at 13:05.",
+                    title="Calibration soon",
+                    url="https://paulonet.eu/bgmonitor/"
+                )
+                client.return_value.send_message.reset_mock()
+
+                # fourth download - alert event (calibration now)
                 testobj.statusDownload(drivermock)
                 client.return_value.send_message.assert_called_once()
                 client.return_value.send_message.assert_called_once_with(

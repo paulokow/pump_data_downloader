@@ -159,8 +159,7 @@ class LatestActivity (object):
                         print(ret)
 
                 # calibration coming soon
-                if (status.sensorStatusValue == 0x10 or status.sensorStatusValue == 0x00) \
-                    and status.sensorCalibrationMinutesRemaining > 0 \
+                if status.sensorCalibrationMinutesRemaining > 0 \
                     and status.sensorCalibrationMinutesRemaining <= 10:
                     calibrationdatetime = currenttimestamp + timedelta(minutes=status.sensorCalibrationMinutesRemaining)
                     print("Notifying calibration needed soon.")
