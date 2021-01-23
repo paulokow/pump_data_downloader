@@ -162,7 +162,7 @@ class LatestActivity (object):
                 if (status.sensorStatusValue == 0x10 or status.sensorStatusValue == 0x00) \
                     and status.sensorCalibrationMinutesRemaining > 0 \
                     and status.sensorCalibrationMinutesRemaining <= 10:
-                    calibrationdatetime = status.timestamp + timedelta(minutes=status.sensorCalibrationMinutesRemaining)
+                    calibrationdatetime = currenttimestamp + timedelta(minutes=status.sensorCalibrationMinutesRemaining)
                     print("Notifying calibration needed soon.")
                     ret = pushover.Client().send_message(
                         "Calibration in {} minutes at {:%-H:%M}.".format(status.sensorCalibrationMinutesRemaining, calibrationdatetime),
