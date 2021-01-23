@@ -159,10 +159,9 @@ class LatestActivity (object):
                         print(ret)
 
                 # calibration coming soon
-                if (status.sensorStatusValue == 0x10 or status.sensorStatusValue == 0x00) \
-                    and status.sensorCalibrationMinutesRemaining > 0 \
+                if status.sensorCalibrationMinutesRemaining > 0 \
                     and status.sensorCalibrationMinutesRemaining <= 10:
-                    calibrationdatetime = status.timestamp + timedelta(minutes=status.sensorCalibrationMinutesRemaining)
+                    calibrationdatetime = currenttimestamp + timedelta(minutes=status.sensorCalibrationMinutesRemaining)
                     print("Notifying calibration needed soon.")
                     ret = pushover.Client().send_message(
                         "Calibration in {} minutes at {:%-H:%M}.".format(status.sensorCalibrationMinutesRemaining, calibrationdatetime),
@@ -173,15 +172,15 @@ class LatestActivity (object):
                 # calibration time passed
                 if status.sensorStatusValue & 0x04 != 0  \
                     and status.sensorCalibrationMinutesRemaining == 0 \
-                    and status.trendArrow == "Calibration needed" \
+                    and status.trendArrow == "Unknown trend" \
                     and not (
                         last_entry is not None \
                         and last_entry["StatusCgm"] \
-                        and last_entry["trendArrow"] == "Calibration needed"
+                        and last_entry["trendArrow"] == "Unknown trend"
                         and last_entry["sensorCalibrationMinutesRemaining"] == 0):
                     print("Notifying calibration needed NOW.")
                     ret = pushover.Client().send_message(
-                        "Calibration already passed!".format(status.sensorCalibrationMinutesRemaining),
+                        "Calibration already passed!",
                         title="Calibration needed!",
                         url="https://paulonet.eu/bgmonitor/",
                         priority=1)
