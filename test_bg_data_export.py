@@ -28,16 +28,19 @@ class TestBGDataExport(unittest.TestCase):
         drivermock.getPumpStatus.return_value = status
 
         with patch("pushover.Client", autospec=True) as client:
-            open(os.path.expanduser("~/.pushoverrc"), 'a').close()
-            client.return_value = MagicMock()
-            client.return_value.send_message.return_value = { "ok": 1}
-            testobj.statusDownload(drivermock)
+            with patch("bg_data_export2.datetime") as time:
+                time.now.return_value = datetime(2021, 1, 20, 13, 0, 9)
 
-            client.return_value.send_message.assert_called_once()
+                open(os.path.expanduser("~/.pushoverrc"), 'a').close()
+                client.return_value = MagicMock()
+                client.return_value.send_message.return_value = { "ok": 1}
+                testobj.statusDownload(drivermock)
 
-            client.return_value.send_message.reset_mock()
-            testobj.statusDownload(drivermock)
-            client.return_value.send_message.assert_not_called()
+                client.return_value.send_message.assert_called_once()
+
+                client.return_value.send_message.reset_mock()
+                testobj.statusDownload(drivermock)
+                client.return_value.send_message.assert_not_called()
 
     def test_statusDownload_calibration_warning(self):
         events = [

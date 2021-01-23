@@ -14,4 +14,3 @@ transitions==0.6.0
 urllib3<1.23,>=1.21.1
 python-pushover==0.4
 mock==3.0.5
-unittest-data-provider==1.0.1
