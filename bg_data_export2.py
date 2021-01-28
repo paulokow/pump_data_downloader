@@ -151,8 +151,9 @@ class LatestActivity (object):
                         and status.sensorBGL < 60 \
                         and status.sensorBGL + 15 * status.sensorRateOfChangePerMin < 70:
                         print("Notifying low sugar level.")
+                        predicted = status.sensorBGL + int(15 * status.sensorRateOfChangePerMin)
                         ret = pushover.Client().send_message(
-                            "Low sugar {}. In 15 minutes predicted {}.".format(status.sensorBGL, status.sensorBGL + int(15 * status.sensorRateOfChangePerMin)),
+                            "Low sugar {}. In 15 minutes predicted {}.".format(status.sensorBGL, predicted if predicted >= 40 else '<40'),
                             title="Low sugar level.",
                             url="https://paulonet.eu/bgmonitor/",
                             priority=1)

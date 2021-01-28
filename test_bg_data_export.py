@@ -42,6 +42,35 @@ class TestBGDataExport(unittest.TestCase):
                 testobj.statusDownload(drivermock)
                 client.return_value.send_message.assert_not_called()
 
+    def test_statusDownload_low_BG(self):
+        db=MongoClient(host="mongo", username="root", password="example").bg_db_test
+        db.all_events.delete_many({})
+
+        testobj = LatestActivity(host="mongo", username="root", password="example")
+        
+        drivermock = Mock(spec=Medtronic600SeriesDriver)
+        status = PumpStatusResponseMessage(
+            responsePayload=bytearray.fromhex('02013C6000000000000000000000000000004A38278D901C4800120000109A000000000A001A0000CA266400160C88190000005DC000358677AA09A115F6670A00100001D626FE7C00000000000000000000000000000000000008D4000008D4')
+            )
+
+        drivermock.getPumpStatus.return_value = status
+
+        with patch("pushover.Client", autospec=True) as client:
+            with patch("bg_data_export2.datetime") as time:
+                time.now.return_value = datetime(2021, 1, 20, 13, 0, 9)
+
+                open(os.path.expanduser("~/.pushoverrc"), 'a').close()
+                client.return_value = MagicMock()
+                client.return_value.send_message.return_value = { "ok": 1}
+                testobj.statusDownload(drivermock)
+
+                client.return_value.send_message.assert_called_once_with(
+                    'Low sugar 53. In 15 minutes predicted <40.',
+                    priority=1,
+                    title='Low sugar level.',
+                    url='https://paulonet.eu/bgmonitor/'
+                )
+
     def test_statusDownload_calibration_warning(self):
         events = [
             "02013C5000000000000000000000000000004268279ACC5145000100001194000000000000000000C15C320020CF6A190000002AF800828684ED53A115F6680060100000142C004A00000000000000000000000000000000000008FC000008FC",
