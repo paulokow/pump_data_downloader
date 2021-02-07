@@ -212,11 +212,11 @@ class LatestActivity (object):
 
     def historyDownload(self, mt):
         # download status first anyway
-        self.statusDownload(mt)
+        # self.statusDownload(mt)
         startdate=self.get_max_bg_record().replace(tzinfo=None) + timedelta(0,1)
         enddate=datetime.now().replace(tzinfo=None)
-        if enddate - startdate > timedelta(days=1):
-            enddate = startdate + timedelta(days=1)
+        if enddate - startdate > timedelta(hours=6):
+            enddate = startdate + timedelta(hours=6)
         print "Download from {0} to {1}".format(startdate.isoformat(), enddate.isoformat())
 
         
@@ -244,10 +244,14 @@ class LatestActivity (object):
 
         eventsAll = sorted(events + eventsS, key = lambda event: event.timestamp)
 
+        max_event_date = None
+
         print "# All events:"
         for ev in eventsAll:
             #print ev.timestamp, datetime.utcfromtimestamp(time.mktime(ev.timestamp.timetuple()))
             if  ev.timestamp.replace(tzinfo=None) > startdate:
+                if max_event_date is None or (ev.timestamp.replace(tzinfo=None) > max_event_date):
+                    max_event_date = ev.timestamp.replace(tzinfo=None)
                 if isinstance(ev, BloodGlucoseReadingEvent):
                     print "Writing: ", ev
                     to_write = {
@@ -371,13 +375,14 @@ class LatestActivity (object):
         #print json.dumps(record, indent=2)
         print "# End events"
 
-        self.config['lastPumpRead'] = datetime.utcnow()
-        if u'_id' in self.config:
-            self.db.bg_config2.replace_one(filter={u'_id': self.config[u'_id']}, replacement=self.config, upsert=True)
-            print 'Config updated', self.config
-        else:
-            self.db.bg_config2.insert_one(self.config)
-            print 'New config saved', self.config
+        if max_event_date is not None:
+            self.config['lastPumpRead'] = max_event_date
+            if u'_id' in self.config:
+                self.db.bg_config2.replace_one(filter={u'_id': self.config[u'_id']}, replacement=self.config, upsert=True)
+                print 'Config updated', self.config
+            else:
+                self.db.bg_config2.insert_one(self.config)
+                print 'New config saved', self.config
 
     def init(self):
         self.getConfig()
@@ -385,7 +390,7 @@ class LatestActivity (object):
         print "Config: ", self.config
         
     def checkIfRun(self):
-        dl = datetime.utcnow() - self.config['lastPumpRead']
+        dl = datetime.now().replace(tzinfo=None) - self.config['lastPumpRead']
         if dl.days == 0 and dl.seconds < (14 * 60):
             print 'Short time since last run:', dl
             return False
@@ -395,6 +400,7 @@ class LatestActivity (object):
     def run(self):
         self.init()
         if self.checkIfRun():
+            decoding_contour_next_link.downloadPumpSession(self.statusDownload)
             decoding_contour_next_link.downloadPumpSession(self.historyDownload)
         else:
             decoding_contour_next_link.downloadPumpSession(self.statusDownload)
