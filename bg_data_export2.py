@@ -189,6 +189,7 @@ class LatestActivity (object):
 
                 # calibration needed in the evening
                 if datetime.now().time() > time(23, 00) \
+                    and datetime.now().time() < time(23, 15) \
                     and (datetime.now() + timedelta(minutes=status.sensorCalibrationMinutesRemaining)).time() < time(7, 00) \
                     and status.sensorStatusValue != 0x00 :
                     print("Evening calibration needed.")
